@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>기초설계 9주차 · 발명원리로 아이디어 내기</title>
+<style>
+:root{--bg:#f6f7f9;--card:#fff;--ink:#1d2330;--sub:#5b6475;--line:#dfe3ea;--main:#2457d6;--ai:#7a3fd1;--hand:#0b7a5a;--warn:#b45309}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 -apple-system,"Apple SD Gothic Neo","Noto Sans KR",sans-serif}
+header{position:sticky;top:0;z-index:5;background:var(--main);color:#fff;padding:10px 16px}
+header b{display:block;font-size:15px}
+header small{opacity:.85}
+.steps{display:flex;gap:4px;margin-top:6px}
+.steps i{flex:1;height:5px;border-radius:3px;background:rgba(255,255,255,.3)}
+.steps i.on{background:#fff}
+main{max-width:640px;margin:0 auto;padding:14px 14px 90px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:14px}
+h1{font-size:21px;margin:4px 0 8px}
+h2{font-size:18px;margin:0 0 8px}
+p{margin:6px 0}
+.sub{color:var(--sub);font-size:14px}
+.tag{display:inline-block;padding:2px 10px;border-radius:99px;font-size:13px;font-weight:700;color:#fff}
+.tag.ai{background:var(--ai)}.tag.hand{background:var(--hand)}
+button{font:inherit;border:0;border-radius:12px;padding:12px 16px;background:var(--main);color:#fff;font-weight:700;width:100%}
+button.ghost{background:#fff;color:var(--main);border:1px solid var(--main)}
+button.small{width:auto;padding:6px 12px;font-size:14px}
+.row{display:flex;gap:8px}
+.row>*{flex:1}
+.grp button{background:#fff;color:var(--ink);border:2px solid var(--line)}
+.grp button.sel{border-color:var(--main);background:#eaf0ff;color:var(--main)}
+textarea,input[type=text],select{font:inherit;width:100%;padding:10px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink)}
+textarea{min-height:64px;resize:vertical}
+label{display:block;font-weight:700;font-size:14px;margin:10px 0 4px}
+.principle{border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin:8px 0;background:#fafbfd}
+.principle b{color:var(--main)}
+.idea{border:1px solid var(--line);border-radius:12px;padding:10px;margin:10px 0;background:#fafbfd}
+.idea .no{font-weight:800;color:var(--main)}
+.timer{position:fixed;right:12px;bottom:12px;background:#1d2330;color:#fff;padding:8px 14px;border-radius:99px;font-weight:700;z-index:6;font-variant-numeric:tabular-nums}
+.timer.over{background:#b42318}
+.notice{background:#fff7e6;border:1px solid #f3d9a4;border-radius:12px;padding:10px 12px;font-size:14px;color:#6b4a0a}
+.rec{background:#f4eefc;border:1px solid #d8c6f3;border-radius:12px;padding:12px;margin-top:12px}
+.rec h3{margin:0 0 4px;font-size:16px;color:var(--ai)}
+.chk{display:flex;gap:8px;align-items:center;margin-top:8px;font-weight:600;font-size:15px}
+.chk input{width:22px;height:22px}
+.big{font-size:32px;font-weight:800;text-align:center}
+.cmp{display:flex;gap:10px}.cmp>div{flex:1;text-align:center;border-radius:12px;padding:12px;border:1px solid var(--line)}
+pre{white-space:pre-wrap;word-break:break-all;background:#f1f3f7;border-radius:10px;padding:10px;font-size:13px;max-height:260px;overflow:auto}
+.nav{display:flex;gap:8px;margin-top:6px}
+</style>
+</head>
+<body>
+<header>
+  <b>기초설계 · 9주차 · 발명원리를 활용한 아이디어 도출</b>
+  <small id="hsub">한 번은 AI와, 한 번은 맨손으로</small>
+  <div class="steps" id="steps"></div>
+</header>
+<main id="app"></main>
+<div class="timer" id="timer" hidden></div>
+
+<script>
+/* ===== 교수님이 수업 전에 고치는 곳 =====
+   과제 주제는 자료에 없어 비워 두었습니다. 여기에 적으면 학생 화면에 그대로 나옵니다.
+   비워 두면 학생이 칠판(화면)에 안내된 주제를 직접 입력합니다. */
+const CONFIG = {
+  topic1: "캠퍼스 쓰레기 분리배출",   // 과제 1 주제
+  topic2: "도서관 빈자리 찾기",       // 과제 2 주제
+  minutes: 30      // 과제 한 판 시간(분). 참고한 사례는 30분이었음
+};
+
+const PRINCIPLES = [
+  {n:"분할", d:"하나를 여러 부분으로 나눈다", ex:"요일별로 칸이 나뉜 약통, 조각조각 나뉜 초콜릿 바"},
+  {n:"결합", d:"여러 개를 하나로 합친다", ex:"지우개가 달린 연필, 전화·카메라·지도를 합친 스마트폰"},
+  {n:"거꾸로", d:"방향·순서·위치를 반대로 한다", ex:"뚜껑이 아래로 가게 세워 두는 케첩 용기, 안팎을 뒤집어 입는 양면 겉옷"}
+];
+const KEY = "gicho9_v1";
+const STEP_NAMES = ["시작","규칙","과제 1","과제 2","비교","정리"];
+
+let S = load();
+function blankRound(){return {topic:"",ideas:Array.from({length:8},()=>({t:"",p:"",sim:false})),rec:{mine:"",ask:"",pick:"",fact:""},start:0,done:false}}
+function load(){
+  try{const s=JSON.parse(localStorage.getItem(KEY));if(s)return s}catch(e){}
+  return {step:0,group:"",r1:blankRound(),r2:blankRound(),q:["","",""],ack:false};
+}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const useAI=n=>(S.group==="A"?n===1:n===2);   // A조: 과제1 AI, B조: 과제2 AI
+const R=n=>n===1?S.r1:S.r2;
+const topicOf=n=>n===1?CONFIG.topic1:CONFIG.topic2;
+
+function go(n){S.step=n;save();render();window.scrollTo(0,0)}
+
+function render(){
+  $("#steps").innerHTML=STEP_NAMES.map((_,i)=>`<i class="${i<=S.step?"on":""}"></i>`).join("");
+  $("#hsub").textContent=`${S.step+1} / ${STEP_NAMES.length} · ${STEP_NAMES[S.step]}`;
+  const v=[vStart,vRules,()=>vTask(1),()=>vTask(2),vCompare,vWrap][S.step]();
+  $("#app").innerHTML=v;
+  bind();
+  tick();
+}
+
+function vStart(){
+  return `<div class="card">
+    <h1>발명원리를 써서 아이디어를 내 봅니다</h1>
+    <p>배운 기법을 직접 써서 아이디어를 내고, 쓴 원리를 옆에 적습니다. 오늘은 <b>한 번은 AI와, 한 번은 맨손으로</b> 합니다.</p>
+    <p class="sub">이름이나 학번은 입력하지 않습니다. 쓴 내용은 이 휴대폰 안에만 저장됩니다.</p>
+  </div>
+  <div class="card">
+    <h2>우리 조는?</h2>
+    <p class="sub">교수님이 알려 준 조를 고르세요. 두 조는 순서가 반대입니다.</p>
+    <div class="row grp">
+      <button data-g="A" class="${S.group==="A"?"sel":""}">A조<br><small>과제 1 AI와<br>과제 2 맨손</small></button>
+      <button data-g="B" class="${S.group==="B"?"sel":""}">B조<br><small>과제 1 맨손<br>과제 2 AI와</small></button>
+    </div>
+  </div>
+  <button id="next" ${S.group?"":"disabled style='opacity:.4'"}>다음: 규칙 보기</button>`;
+}
+
+function vRules(){
+  return `<div class="card">
+    <h2>오늘 쓸 발명원리 세 가지</h2>
+    ${PRINCIPLES.map(p=>`<div class="principle"><b>${p.n}</b> · ${p.d}<div class="sub">예: ${p.ex}</div></div>`).join("")}
+  </div>
+  <div class="card">
+    <h2>AI에게는 이렇게 물어봅니다</h2>
+    <p><b>1. 한 번에 하나만</b> — 질문 하나에 요청 하나만 넣습니다.</p>
+    <p><b>2. 맥락을 구체적으로</b> — 누가, 어디서, 무엇이 불편한지 적어 줍니다.</p>
+    <p><b>3. 내 생각도 묻기</b> — 답만 받지 말고, 내가 낸 아이디어에 대한 의견도 물어봅니다.</p>
+    <div class="notice" style="margin-top:10px">AI의 답은 <b>익숙한 아이디어로 기울고</b> 틀릴 수도 있습니다. 앱이나 스마트 쓰레기통 같은 비슷한 아이디어가 나오면 한 번 더 의심해 보세요.</div>
+  </div>
+  <div class="card">
+    <h2>AI와 하는 판의 기록</h2>
+    <p class="sub">AI와 한 판에만 씁니다. «AI가 썼는지»를 가리려는 것이 아니라 내 생각의 흐름을 남기는 것입니다.</p>
+    <p>① 내가 먼저 낸 생각 → ② AI에 한 질문 → ③ 고르거나 버린 것과 이유 → ④ 사실 확인</p>
+    <p class="sub">쓸 AI 도구와 사용 규칙은 교수님 안내를 따르세요.</p>
+    <div class="chk"><input type="checkbox" id="ack" ${S.ack?"checked":""}><label for="ack" style="margin:0">규칙을 읽었습니다</label></div>
+  </div>
+  <div class="nav"><button class="ghost" data-go="0">이전</button><button id="next" ${S.ack?"":"disabled style='opacity:.4'"}>과제 1 시작</button></div>`;
+}
+
+function vTask(n){
+  const r=R(n), ai=useAI(n);
+  const fixed=topicOf(n);
+  const k=r.ideas.filter(i=>i.t.trim()).length;
+  return `<div class="card">
+    <span class="tag ${ai?"ai":"hand"}">${ai?"AI와 함께":"맨손으로"}</span>
+    <h1>과제 ${n}</h1>
+    ${fixed?`<p>주제: <b>${esc(fixed)}</b></p>`:`<label>주제 (화면에 안내된 주제를 적으세요)</label><input type="text" id="topic" value="${esc(r.topic)}" placeholder="수업 때 안내하는 주제">`}
+    <p>한 주제에서 아이디어를 <b>8개</b> 냅니다. 아이디어마다 쓴 발명원리를 고르세요.</p>
+    ${ai?`<div class="notice">AI를 써도 됩니다. 하지만 <b>먼저 내 생각을 적고</b> 나서 물어보세요. 아래 기록을 꼭 채웁니다.</div>`
+        :`<div class="notice">이 판은 <b>AI를 쓰지 않습니다</b>. 검색도 하지 않고 내 머리로 냅니다.</div>`}
+    <div style="margin-top:10px">${r.start?`<span class="sub">시작함 · 아이디어 ${k}/8</span>`:`<button id="startT">${CONFIG.minutes}분 타이머 시작</button>`}</div>
+  </div>
+  <div class="card">
+    <h2>아이디어 8개</h2>
+    ${r.ideas.map((it,i)=>`<div class="idea"><span class="no">${i+1}</span>
+      <textarea data-i="${i}" data-f="t" placeholder="아이디어를 한두 문장으로">${esc(it.t)}</textarea>
+      <label>쓴 발명원리</label>
+      <select data-i="${i}" data-f="p"><option value="">고르세요</option>${PRINCIPLES.map(p=>`<option ${it.p===p.n?"selected":""}>${p.n}</option>`).join("")}<option ${it.p==="쓰지 않음"?"selected":""}>쓰지 않음</option></select>
+    </div>`).join("")}
+  </div>
+  ${ai?`<div class="card"><div class="rec" style="margin-top:0"><h3>AI 사용 기록</h3>
+    <label>① AI에 묻기 전에 내가 먼저 낸 생각</label><textarea data-r="mine">${esc(r.rec.mine)}</textarea>
+    <label>② AI에 실제로 한 질문</label><textarea data-r="ask">${esc(r.rec.ask)}</textarea>
+    <label>③ AI 답 중 고른 것, 버린 것과 이유</label><textarea data-r="pick">${esc(r.rec.pick)}</textarea>
+    <label>④ 사실 확인 (확인한 방법과 결과)</label><textarea data-r="fact">${esc(r.rec.fact)}</textarea>
+  </div></div>`:""}
+  <div class="nav"><button class="ghost" data-go="${S.step-1}">이전</button><button id="doneT">${n===1?"과제 2로":"비교하러 가기"}</button></div>`;
+}
+
+function count(n){return R(n).ideas.filter(i=>i.t.trim()).length}
+function simCount(n){return R(n).ideas.filter(i=>i.t.trim()&&i.sim).length}
+
+const CATS=["분할","결합","거꾸로","쓰지 않음","고르지 않음"];
+function pCounts(n){
+  const c=Object.fromEntries(CATS.map(x=>[x,0]));
+  R(n).ideas.forEach(i=>{if(!i.t.trim())return;c[i.p&&c[i.p]!==undefined?i.p:"고르지 않음"]++});
+  return c;
+}
+function chart(a,h){
+  const ca=pCounts(a), ch=pCounts(h);
+  const max=Math.max(1,...CATS.map(x=>Math.max(ca[x],ch[x])));
+  const bar=(v,cls,lab)=>`<div style="display:flex;align-items:center;gap:6px;margin:2px 0">
+    <span class="sub" style="width:34px;font-size:12px">${lab}</span>
+    <div style="flex:1;background:#eef0f4;border-radius:5px;height:18px"><div style="width:${v/max*100}%;min-width:${v?4:0}px;height:100%;border-radius:5px;background:var(--${cls})"></div></div>
+    <b style="width:18px;text-align:right">${v}</b></div>`;
+  return `<div class="card"><h2>발명원리별 아이디어 수</h2>
+    <p class="sub">원리별로 AI 판과 맨손 판을 나란히 봅니다. 개수는 적은 아이디어 기준입니다.</p>
+    ${CATS.map(x=>`<div style="margin:12px 0 4px"><b>${x}</b></div>${bar(ca[x],"ai","AI")}${bar(ch[x],"hand","맨손")}`).join("")}
+    <p class="sub" style="margin-top:10px"><span class="tag ai">AI</span> AI와 한 판 · <span class="tag hand">맨손</span> 맨손 한 판</p></div>`;
+}
+
+function vCompare(){
+  const side=(n)=>{const r=R(n),ai=useAI(n);
+    return `<div class="card"><span class="tag ${ai?"ai":"hand"}">${ai?"AI와 한 판":"맨손 한 판"}</span> <span class="sub">과제 ${n}</span>
+      <p class="sub">기존 제품·앱과 닮은 아이디어에 체크하세요.</p>
+      ${r.ideas.map((it,i)=>it.t.trim()?`<div class="chk"><input type="checkbox" data-s="${n}" data-i="${i}" ${it.sim?"checked":""}><span>${i+1}. ${esc(it.t.length>40?it.t.slice(0,40)+"…":it.t)}</span></div>`:"").join("")||`<p class="sub">적은 아이디어가 없습니다.</p>`}
+    </div>`};
+  const a=useAI(1)?1:2, h=a===1?2:1;
+  return `${side(a)}${side(h)}
+  ${chart(a,h)}
+  <div class="card"><h2>결과</h2>
+    <div class="cmp"><div><div class="sub">AI와 한 판</div><div class="big">${simCount(a)}<small style="font-size:16px"> / ${count(a)}</small></div></div>
+    <div><div class="sub">맨손 한 판</div><div class="big">${simCount(h)}<small style="font-size:16px"> / ${count(h)}</small></div></div></div>
+    <p class="sub">닮은 아이디어는 어느 쪽에 더 많았나요? 지난 학기에는 다들 비슷한 아이디어를 냈습니다.</p></div>
+  <div class="nav"><button class="ghost" data-go="3">이전</button><button id="next">생각해 볼 질문</button></div>`;
+}
+
+function vWrap(){
+  const a=useAI(1)?1:2, h=a===1?2:1;
+  const qs=["닮은 아이디어는 AI와 한 판과 맨손 한 판 중 어느 쪽에 더 많았나요? 숫자와 함께 한 문장으로 쓰세요.",
+            "AI의 답 중에서 버린 것은 무엇이고, 왜 버렸나요?",
+            "오늘 쓴 발명원리 중 팀 과제에 다시 쓰고 싶은 것은 무엇인가요? 이유도 함께 쓰세요."];
+  return `<div class="card"><h2>생각해 볼 질문</h2>
+    ${qs.map((q,i)=>`<label>${i+1}. ${q}</label><textarea data-q="${i}">${esc(S.q[i])}</textarea>`).join("")}
+  </div>
+  <div class="card"><h2>내 기록 내보내기</h2>
+    <p class="sub">아래 버튼으로 기록을 복사해, 교수님이 안내한 방법으로 내세요. 내는 방법은 수업 때 안내합니다.</p>
+    <div class="row"><button id="copy">기록 복사하기</button><button class="ghost" id="show">미리 보기</button></div>
+    <pre id="out" hidden></pre>
+  </div>
+  <div class="card"><h2>오늘 정리</h2>
+    <p><b>발명원리</b> 배운 기법을 직접 써서 아이디어를 내고, 쓴 원리를 적는다.</p>
+    <p><b>AI 쓰기</b> 한 번에 하나, 구체적으로 묻고 답을 확인한다. 익숙한 쪽으로 기운다.</p>
+    <p><b>기록하기</b> 사용 기록과 «닮은 아이디어 표시»로 내 생각의 흐름을 남긴다.</p>
+    <p class="sub">다음 주 10주차(분리원리)는 강의로 진행하고 AI를 쓰지 않습니다.</p></div>
+  <div class="nav"><button class="ghost" data-go="4">이전</button><button class="ghost" id="reset" style="color:#b42318;border-color:#b42318">처음부터 다시</button></div>`;
+}
+
+function report(){
+  const a=useAI(1)?1:2, h=a===1?2:1, L=[];
+  L.push(`[기초설계 9주차] ${S.group}조`);
+  [1,2].forEach(n=>{const r=R(n);
+    L.push(`\n■ 과제 ${n} (${useAI(n)?"AI와 함께":"맨손"}) 주제: ${topicOf(n)||r.topic||"-"}`);
+    r.ideas.forEach((it,i)=>{if(it.t.trim())L.push(`${i+1}. ${it.t.trim()} / 원리: ${it.p||"-"} / 닮음: ${it.sim?"예":"아니오"}`)});
+    if(useAI(n)){L.push("[AI 사용 기록]",`① 내가 먼저: ${r.rec.mine}`,`② AI에 한 질문: ${r.rec.ask}`,`③ 고른/버린 것과 이유: ${r.rec.pick}`,`④ 사실 확인: ${r.rec.fact}`)}
+  });
+  L.push(`\n■ 비교: AI와 한 판 닮은 ${simCount(a)}/${count(a)}, 맨손 한 판 닮은 ${simCount(h)}/${count(h)}`);
+  S.q.forEach((x,i)=>L.push(`질문${i+1}: ${x}`));
+  return L.join("\n");
+}
+
+function bind(){
+  document.querySelectorAll("[data-g]").forEach(b=>b.onclick=()=>{S.group=b.dataset.g;save();render()});
+  document.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>go(+b.dataset.go));
+  const nx=$("#next"); if(nx&&!nx.disabled)nx.onclick=()=>go(S.step+1);
+  const ack=$("#ack"); if(ack)ack.onchange=()=>{S.ack=ack.checked;save();render()};
+  const tp=$("#topic"); if(tp)tp.oninput=()=>{R(S.step-1).topic=tp.value;save()};
+  document.querySelectorAll("[data-f]").forEach(el=>el.oninput=el.onchange=()=>{R(S.step-1).ideas[+el.dataset.i][el.dataset.f]=el.value;save()});
+  document.querySelectorAll("[data-r]").forEach(el=>el.oninput=()=>{R(S.step-1).rec[el.dataset.r]=el.value;save()});
+  document.querySelectorAll("[data-q]").forEach(el=>el.oninput=()=>{S.q[+el.dataset.q]=el.value;save()});
+  document.querySelectorAll("[data-s]").forEach(el=>el.onchange=()=>{R(+el.dataset.s).ideas[+el.dataset.i].sim=el.checked;save();render()});
+  const st=$("#startT"); if(st)st.onclick=()=>{R(S.step-1).start=Date.now();save();render()};
+  const dn=$("#doneT"); if(dn)dn.onclick=()=>{
+    const r=R(S.step-1);
+    if(count(S.step-1)<8&&!confirm(`아이디어가 ${count(S.step-1)}개입니다. 그래도 넘어갈까요?`))return;
+    r.done=true;go(S.step+1)};
+  const cp=$("#copy"); if(cp)cp.onclick=async()=>{
+    const t=report();
+    try{await navigator.clipboard.writeText(t);cp.textContent="복사했습니다"}catch(e){const o=$("#out");o.hidden=false;o.textContent=t;cp.textContent="아래 글을 길게 눌러 복사하세요"}};
+  const sh=$("#show"); if(sh)sh.onclick=()=>{const o=$("#out");o.hidden=!o.hidden;o.textContent=report()};
+  const rs=$("#reset"); if(rs)rs.onclick=()=>{if(confirm("쓴 내용이 모두 지워집니다. 처음부터 다시 할까요?")){localStorage.removeItem(KEY);S=load();render()}};
+}
+
+function tick(){
+  const t=$("#timer"), n=S.step-1;
+  if((S.step===2||S.step===3)&&R(n).start&&!R(n).done){
+    const left=CONFIG.minutes*60-Math.floor((Date.now()-R(n).start)/1000);
+    t.hidden=false;t.classList.toggle("over",left<0);
+    const a=Math.abs(left);
+    t.textContent=(left<0?"+":"")+String(Math.floor(a/60)).padStart(2,"0")+":"+String(a%60).padStart(2,"0");
+  }else t.hidden=true;
+}
+setInterval(tick,1000);
+render();
+</script>
+</body>
+</html>
